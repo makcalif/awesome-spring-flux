@@ -21,6 +21,9 @@ public class AwesomeSpringFluxApplicationTests {
 
 	@Test
 	public void test1 () {
+
+		// using sample
+		// https://grokonez.com/reactive-programming/reactor/reactor-create-flux-interval-reactive-programming
 		List<String> data = new ArrayList<String>(Arrays.asList("{A}", "{B}", "{C}"));
 		Flux<String> intervalFlux1 = Flux
 				.interval(Duration.ofMillis(500))
