@@ -1,6 +1,7 @@
 package com.cognizant.labs.spring.flux.awesomespringflux.controller;
 
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Tweet;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
@@ -19,11 +20,14 @@ public class TweetController {
         Tweet tweet1 = new Tweet( ); tweet1.setText("first tweet");
         Tweet tweet2 = new Tweet( ); tweet2.setText("first tweet");
         Tweet tweet3 = new Tweet( ); tweet3.setText("first tweet");
-        //Tweet tweet2 = new Tweet("second tweet", "");
-        //Tweet tweet3 = new Tweet("third tweet", "");
 
         Flux<Tweet> fluxTweets = Flux.just(tweet1, tweet2, tweet3);
         return fluxTweets;
+    }
+
+    @GetMapping(value = "/tweetstream", produces =  MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Tweet> streamAllTweets () {
+        return null;
     }
 
     private List<Tweet> getTweetsList() {
