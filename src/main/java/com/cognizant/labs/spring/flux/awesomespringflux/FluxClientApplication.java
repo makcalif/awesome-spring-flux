@@ -13,26 +13,16 @@ public class FluxClientApplication implements ApplicationListener<ContextRefresh
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
 
-        //testBasic();
+        //testBasic("/tweets");
 
-        testBasic2();
+        testBasic("/tweetstream");
 
     }
 
-    private void testBasic() {
+    private void testBasic(String endPoint) {
         WebClient webClient = WebClient.create("http://localhost:8080");
         Flux<Tweet> tweetsFlux = webClient.get()
-                .uri("/tweets")
-                .retrieve()
-                .bodyToFlux(Tweet.class);
-
-        tweetsFlux.subscribe(System.out::println);
-    }
-
-    private void testBasic2() {
-        WebClient webClient = WebClient.create("http://localhost:8080");
-        Flux<Tweet> tweetsFlux = webClient.get()
-                .uri("/tweets")
+                .uri(endPoint)
                 .retrieve()
                 .bodyToFlux(Tweet.class);
 

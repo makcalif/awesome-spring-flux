@@ -15,6 +15,13 @@ public class Tweet {
     @Setter
       String text;
 
+    public Tweet() {
+    }
+
+    public Tweet(String title) {
+        this.title = title;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -29,5 +36,13 @@ public class Tweet {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    @Override
+    public String toString() {
+        return "Tweet{" +
+                "title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                '}';
     }
 }
