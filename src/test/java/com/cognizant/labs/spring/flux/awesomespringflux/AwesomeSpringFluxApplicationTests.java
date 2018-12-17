@@ -2,6 +2,8 @@ package com.cognizant.labs.spring.flux.awesomespringflux;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Flux;
@@ -46,5 +48,33 @@ public class AwesomeSpringFluxApplicationTests {
 	public void more() {
 		//https://www.infoq.com/articles/reactor-by-example
 	}
+
+	@Test
+	public void some() {
+		Flux.just(1,2,3,4)
+				.log()
+				.subscribe(new Subscriber<Integer>() {
+					@Override
+					public void onSubscribe(Subscription s) {
+						s.request(Long.MAX_VALUE);
+					}
+
+					@Override
+					public void onNext(Integer integer) {
+						System.out.println("on next called :" + integer);
+					}
+
+					@Override
+					public void onError(Throwable t) {
+
+					}
+
+					@Override
+					public void onComplete() {
+
+					}
+				});
+	}
+
 }
 

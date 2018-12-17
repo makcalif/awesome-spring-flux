@@ -14,6 +14,8 @@ import java.util.List;
 @RestController
 public class TweetController {
 
+    //http://reactivex.io/tutorials.html
+
     @GetMapping ("/tweets")
     public Flux<Tweet> getAllTweets() {
 
@@ -41,7 +43,7 @@ public class TweetController {
 
         Flux<Tweet> tweetFlux = Flux
                 .fromIterable(tweets)
-                .delayElements(Duration.ofSeconds(3))
+                //.delayElements(Duration.ofSeconds(3))
                 .map(tick -> new Tweet( tick.toString() ));
 
         return tweetFlux;
