@@ -41,5 +41,10 @@ public class AwesomeSpringFluxApplicationTests {
 			e.printStackTrace();
 		}
 	}
+
+	@Test
+	public void more() {
+		//https://www.infoq.com/articles/reactor-by-example
+	}
 }
 

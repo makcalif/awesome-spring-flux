@@ -15,7 +15,9 @@ public class FluxClientApplication implements ApplicationListener<ContextRefresh
 
         //testBasic("/tweets");
 
-        testBasic("/tweetstream");
+        //testBasic("/tweetstream");
+
+        testBasic("/tweetsrange");
 
     }
 

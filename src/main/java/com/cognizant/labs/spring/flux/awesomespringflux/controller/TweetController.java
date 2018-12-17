@@ -8,6 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -18,16 +19,14 @@ public class TweetController {
 
         List<Tweet> tweets = getTweetsList();
 
-        Tweet tweet1 = new Tweet( ); tweet1.setText("first tweet");
-        Tweet tweet2 = new Tweet( ); tweet2.setText("first tweet");
-        Tweet tweet3 = new Tweet( ); tweet3.setText("first tweet");
-
-        Flux<Tweet> fluxTweets = Flux.just(tweet1, tweet2, tweet3).delayElements(Duration.ofSeconds(3));
+        Flux<Tweet> fluxTweets = Flux.just(tweets.get(0), tweets.get(1), tweets.get(2)).delayElements(Duration.ofSeconds(3));
         return fluxTweets;
     }
 
     @GetMapping(value = "/tweetstream", produces =  MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Tweet> streamAllTweets () {
+
+        List<Tweet> tweets = getTweetsList();
 
         Flux<Tweet> tweetFlux = Flux.interval(Duration.ofSeconds(3))
                 .map(tick -> new Tweet( tick.toString() ));
@@ -35,8 +34,25 @@ public class TweetController {
         return tweetFlux;
     }
 
+    @GetMapping(value = "/tweetsrange", produces =  MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Tweet> streamTweetsRange () {
+
+        List<Tweet> tweets = getTweetsList();
+
+        Flux<Tweet> tweetFlux = Flux
+                .fromIterable(tweets)
+                .delayElements(Duration.ofSeconds(3))
+                .map(tick -> new Tweet( tick.toString() ));
+
+        return tweetFlux;
+    }
+
     private List<Tweet> getTweetsList() {
-        return null;
+        List<Tweet> tweetList = Arrays.asList(
+                new Tweet("first"),
+                new Tweet("second"),
+                new Tweet("third"));
+        return tweetList;
     }
 
 //    @GetMapping ("/tweets/{id}")
