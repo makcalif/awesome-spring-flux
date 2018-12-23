@@ -47,10 +47,8 @@ public class FluxMonoTest {
     public void delay() {
         Flux<String> firstNames = Flux.fromIterable(Arrays.asList("A", "B", "C"));
         Flux<Long> delay = Flux.interval(Duration.ofSeconds(3));
-        //Flux<String> delay = Flux.fromIterable(Arrays.asList("1", "2", "3"));
         Flux<String> firstNamesWithDelay = firstNames.zipWith(delay, (s, l) -> s);
 
-        //Flux<String> zipped = Flux.zip(firstNames, firstNamesWithDelay)
         List list = Flux.zip(firstNames, firstNamesWithDelay)
                 .log()
                 .collectList()
