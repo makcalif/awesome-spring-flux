@@ -31,6 +31,11 @@ dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
 	implementation('org.springframework.boot:spring-boot-starter-webflux')
 	implementation('org.springframework.boot:spring-boot-starter-web')
+
+	implementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.5'
+	implementation 'cz.jirutka.spring:embedmongo-spring:RELEASE'
+	implementation('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
+
 	compileOnly 'org.projectlombok:lombok:1.18.4'
 	//apt 'org.projectlombok:lombok:1.18.4'
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
