@@ -2,7 +2,7 @@ package com.cognizant.labs.spring.flux.awesomespringflux.controller;
 
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Allocation;
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Tweet;
-import com.cognizant.labs.spring.flux.awesomespringflux.service.EmployeeService;
+import com.cognizant.labs.spring.flux.awesomespringflux.service.TweetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +20,11 @@ public class TweetController {
 
     //http://reactivex.io/tutorials.html
 
-    EmployeeService employeeService;
+    TweetService tweetService;
 
     @Autowired
-    public TweetController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
+    public TweetController(TweetService tweetService) {
+        this.tweetService = tweetService;
     }
 
     @GetMapping ("/tweetsFakeDelay")
@@ -79,18 +79,32 @@ public class TweetController {
         return tweetList;
     }
 
-    @GetMapping ("/employees/{id}")
-    public Mono<Tweet> getEmployeeById(@PathVariable String id) {
-        return this.employeeService.getById(id);
+    @GetMapping(value = "/tweetstream/{id}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Tweet> getTweetStream(@PathVariable String id) {
+//        return tweetService.getById(id)
+//                    .flatMap(user -> {
+//                        System.out.println("User :" + user);
+//                        return tweetService.streamTweets(user);
+//                    });
+
+        return null;
+
+        // .flatMap(u -> tweetService.streamTweets(u));
+               // .flatMap(tweetService::getById);
     }
 
-    @GetMapping ("/employees/")
-    public Flux<Tweet> getAllEmployees() {
-        return this.employeeService.getAll();
-    }
-
-    @GetMapping(value = "/employee/{id}/allocations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Allocation> getAllocations(@PathVariable String id) {
-        return null; // employeeService.
-    }
+//    @GetMapping ("/employees/{id}")
+//    public Mono<Tweet> getEmployeeById(@PathVariable String id) {
+//        return this.employeeService.getById(id);
+//    }
+//
+//    @GetMapping ("/employees/")
+//    public Flux<Tweet> getAllEmployees() {
+//        return this.employeeService.getAll();
+//    }
+//
+//    @GetMapping(value = "/employee/{id}/allocations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public Flux<Allocation> getAllocations(@PathVariable String id) {
+//        return null; // employeeService.
+//    }
 }

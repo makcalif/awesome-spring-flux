@@ -2,20 +2,19 @@ package com.cognizant.labs.spring.flux.awesomespringflux.domain;
 
 import lombok.*;
 
-//@Data
-//@NoArgsConstructor
-//@AllArgsConstructor //(access = AccessLevel.PRIVATE)
+@Data
+@Getter
+@Setter
+@AllArgsConstructor
 public class Tweet {
 
-    //d@Getter
-    @Setter
-      String title;
+    User user;
+    String title;
+    String text;
 
-    //@Getter
-    @Setter
-      String text;
-
-    public Tweet() {
+    public Tweet(User user, String title) {
+        this.user = user;
+        this.title = title;
     }
 
     public Tweet(String title) {

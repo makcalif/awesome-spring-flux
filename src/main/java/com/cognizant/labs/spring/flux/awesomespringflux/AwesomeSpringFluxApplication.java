@@ -1,16 +1,14 @@
 package com.cognizant.labs.spring.flux.awesomespringflux;
 
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Employee;
-import com.cognizant.labs.spring.flux.awesomespringflux.respository.EmployeeeRepository;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.User;
+import com.cognizant.labs.spring.flux.awesomespringflux.respository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @SpringBootApplication
@@ -21,14 +19,21 @@ public class AwesomeSpringFluxApplication {
 	}
 
 	@Bean
-	CommandLineRunner populateEmployeeRepo(EmployeeeRepository employeeeRepository) {
-		System.out.println("adding employees to mongo db");
+	CommandLineRunner populateUserRepo(UserRepository userRepository) {
+		System.out.println("adding users to mongo db");
 
-		Stream.of("Jack", "Brian", "Peter", "Eric", "Maria")
-				.map(name -> new Employee())
-				.forEach(e -> employeeeRepository.save(e).subscribe(System.out::println));
 		return args -> {
-			employeeeRepository.deleteAll();
+			userRepository.deleteAll().subscribe(
+			null,
+		null,
+					() -> Stream.of("Jack", "Brian", "Peter", "Eric", "Maria")
+							.map(name -> new User(UUID.randomUUID().toString(), name))
+							//.map(user -> userRepository.save(user))
+							.forEach( u -> userRepository.save(u)
+							.subscribe(System.out::println))
+			);
+
+
 		};
 	}
 
