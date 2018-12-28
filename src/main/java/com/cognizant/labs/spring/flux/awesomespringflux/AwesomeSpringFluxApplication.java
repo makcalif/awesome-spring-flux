@@ -28,10 +28,14 @@ public class AwesomeSpringFluxApplication {
 		null,
 					() -> Stream.of("Jack", "Brian", "Peter", "Eric", "Maria")
 							.map(name -> new User(UUID.randomUUID().toString(), name))
-							//.map(user -> userRepository.save(user))
 							.forEach( u -> userRepository.save(u)
+							.map(v -> "write: " + v)
 							.subscribe(System.out::println))
+
+
+
 			);
+
 
 
 		};

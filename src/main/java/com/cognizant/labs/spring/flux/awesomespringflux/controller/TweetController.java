@@ -2,7 +2,10 @@ package com.cognizant.labs.spring.flux.awesomespringflux.controller;
 
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Allocation;
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Tweet;
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.User;
+import com.cognizant.labs.spring.flux.awesomespringflux.respository.UserRepository;
 import com.cognizant.labs.spring.flux.awesomespringflux.service.TweetService;
+import com.cognizant.labs.spring.flux.awesomespringflux.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +24,14 @@ public class TweetController {
     //http://reactivex.io/tutorials.html
 
     TweetService tweetService;
+    UserService userService;
+
+    @Autowired
+    public TweetController(TweetService tweetService, UserService userService) {
+        this.tweetService = tweetService;
+        this.userService = userService;
+    }
+
 
     @Autowired
     public TweetController(TweetService tweetService) {
@@ -88,23 +99,16 @@ public class TweetController {
 //                    });
 
         return null;
-
-        // .flatMap(u -> tweetService.streamTweets(u));
-               // .flatMap(tweetService::getById);
     }
 
-//    @GetMapping ("/employees/{id}")
-//    public Mono<Tweet> getEmployeeById(@PathVariable String id) {
-//        return this.employeeService.getById(id);
-//    }
-//
-//    @GetMapping ("/employees/")
-//    public Flux<Tweet> getAllEmployees() {
-//        return this.employeeService.getAll();
-//    }
-//
-//    @GetMapping(value = "/employee/{id}/allocations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public Flux<Allocation> getAllocations(@PathVariable String id) {
-//        return null; // employeeService.
-//    }
+
+    @GetMapping (value = "/users", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<User> getAllUsers() {
+        return this.userService.getAllUsers();
+    }
+
+    @GetMapping(value = "/users/{id}")
+    public Mono<User> getUserById(@PathVariable String id) {
+        return this.userService.getUser(id);
+    }
 }

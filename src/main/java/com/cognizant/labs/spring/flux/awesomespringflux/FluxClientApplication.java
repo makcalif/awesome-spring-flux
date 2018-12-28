@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-@Component
+//@Component
 public class FluxClientApplication implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -48,6 +48,7 @@ public class FluxClientApplication implements ApplicationListener<ContextRefresh
                 .retrieve()
                 .bodyToFlux(Tweet.class);
 
-        tweetsFlux.subscribe(System.out::println);
+        tweetsFlux
+                .subscribe(System.out::println);
     }
 }
