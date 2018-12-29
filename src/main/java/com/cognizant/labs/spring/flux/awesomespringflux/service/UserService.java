@@ -19,10 +19,15 @@ public class UserService {
     }
 
     public Flux<User> getAllUsers() {
-        return this.userRepository.findAll();
+        //return this.userRepository.findAll();
+        return this.userRepository.findUsersBy();
     }
 
     public Mono<User> getUser(String id) {
         return this.userRepository.findById(id);
+    }
+
+    public Flux<User> insert(Flux<User> users) {
+        return this.userRepository.insert(users);
     }
 }

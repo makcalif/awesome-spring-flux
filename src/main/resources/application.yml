@@ -4,3 +4,9 @@ spring:
     url: jdbc:h2:mem:localhost;DB_CLOSE_ON_EXIT=FALSE
     username: admin
     password:
+  data:
+    mongodb:
+      host: 192.168.99.100
+      port: 27017
+       # how to run docker -->  docker run -d -p 27017:27017   mongo
+       # for capped coll run this: db.runCommand({convertToCapped: 'user', size: 9128});

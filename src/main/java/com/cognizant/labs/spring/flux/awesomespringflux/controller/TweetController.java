@@ -6,11 +6,11 @@ import com.cognizant.labs.spring.flux.awesomespringflux.domain.User;
 import com.cognizant.labs.spring.flux.awesomespringflux.respository.UserRepository;
 import com.cognizant.labs.spring.flux.awesomespringflux.service.TweetService;
 import com.cognizant.labs.spring.flux.awesomespringflux.service.UserService;
+import org.aspectj.apache.bcel.classfile.Module;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,12 +30,6 @@ public class TweetController {
     public TweetController(TweetService tweetService, UserService userService) {
         this.tweetService = tweetService;
         this.userService = userService;
-    }
-
-
-    @Autowired
-    public TweetController(TweetService tweetService) {
-        this.tweetService = tweetService;
     }
 
     @GetMapping ("/tweetsFakeDelay")
@@ -110,5 +104,11 @@ public class TweetController {
     @GetMapping(value = "/users/{id}")
     public Mono<User> getUserById(@PathVariable String id) {
         return this.userService.getUser(id);
+    }
+
+    @PostMapping(value = "/uploadUsers", consumes = "application/stream+json")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Flux<User> loadUsers(@RequestBody Flux<User> users) {
+        return this.userService.insert(users);
     }
 }
