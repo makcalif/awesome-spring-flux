@@ -1,3 +1,6 @@
-curl -i   -H "Accept: application/stream+json"   -X POST -d "{name:mumtaz}"    http://localhost:8080/uploadUsers
 
+add new json to flux post end point (stream json)
 curl -i   -H "Content-Type: application/stream+json"   -X POST -d '{"id":"2344", "firstName": "mumtaz"}'    http://localhost:8080/uploadUsers
+
+monitor the read end:
+curl http://localhost:8080/users -N
