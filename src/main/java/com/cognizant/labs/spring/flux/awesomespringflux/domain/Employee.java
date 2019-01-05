@@ -6,21 +6,21 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-@Getter
-@Setter
-@ToString
-
+@Data
+@AllArgsConstructor
 public class Employee {
 
     @Id
     private String Id;
+    private String firstName;
+    private String lastName;
 
-    public Employee(String id, String firstName) {
-        Id = id;
-        this.firstName = firstName;
-    }
+//    public Employee(String id, String firstName) {
+//        Id = id;
+//        this.firstName = firstName;
+//    }
 
-    String firstName;
+
 
 
 }

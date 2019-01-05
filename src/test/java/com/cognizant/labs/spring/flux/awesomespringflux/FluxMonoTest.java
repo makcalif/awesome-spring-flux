@@ -110,6 +110,23 @@ public class FluxMonoTest {
     }
 
     @Test
+    public void mergeMonoWithDelayFlux() throws InterruptedException {
+        Mono<String> strs = Mono.just("A");
+        Mono<Long> delay = Mono.delay(Duration.ofSeconds(3));
+
+        Mono<String> strsWithDelay = strs.zipWith(delay, (str, longDelay) -> str);
+
+        strsWithDelay
+                 .subscribe(System.out::println)
+                ;
+        // crude way of testing
+        Thread.sleep(10000);
+        StepVerifier.create(strsWithDelay)
+                .thenConsumeWhile((e) -> true, System.out::println);
+    }
+
+
+    @Test
     public void verifyConsumeWithDelay() {
         Flux<Long> range = Flux.interval(Duration.ofSeconds(1)).take(3);
 
