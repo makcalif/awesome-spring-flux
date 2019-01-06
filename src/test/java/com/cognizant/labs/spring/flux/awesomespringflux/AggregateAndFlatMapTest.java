@@ -10,10 +10,7 @@ import reactor.core.publisher.MonoSink;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -151,28 +148,38 @@ public class AggregateAndFlatMapTest {
         employees
                 // equivalent of map and merge
                 .flatMap(emp -> {
-                   // get equipment
+                    // get equipment
 
-                   Flux<Equipment> equip = this.getEmployeeEquipment(emp);
+                    Flux<Equipment> equip = this.getEmployeeEquipment(emp);
 
-                     Map<String, Object> empMap = new HashMap<>();
-                     empMap.put("id", emp.getId());
-                     empMap.put("firstName", emp.getFirstName());
+                    Map<String, Object> empMap = new HashMap<>();
+                    empMap.put("id", emp.getId());
+                    empMap.put("firstName", emp.getFirstName());
 
-                     Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
+                    Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
 
-                    Flux<Map<String, String>> equipMap =  equip.map(equipment -> {
-                        HashMap<String, String> eqMap = new HashMap();
+                    Flux<Map<String, Object>> equipMap = equip.map(equipment -> {
+                        HashMap<String, Object> eqMap = new HashMap();
                         eqMap.put("name", equipment.getName());
                         return eqMap;
                     });
 
-                   // get Addresses
+                    // get Addresses
+                    Map<String, String> addressMap = new HashMap<>();
+                    addressMap.put("address", "123 some street");
+                    Flux<Map<String, String>> addressFlux = Flux.just(addressMap);
+                    // getProjects
 
-                   // getProjects
+                    Flux<Map<String, Object>> zipped = Flux.zip(equipMap, addressFlux)
+                            .map((all) -> {
+                                Map<String, Object> merged = new LinkedHashMap<>();
+                                merged.putAll(empMap);
+                                merged.putAll(all.getT1());
+                                merged.putAll(all.getT2());
+                                return merged;
+                            });
+                    return zipped;
 
-                    empMap.put("equipment", equipMap);
-                    return  empMapFlux;
                 }).doOnNext(System.out::println)
                 .blockLast();
 
