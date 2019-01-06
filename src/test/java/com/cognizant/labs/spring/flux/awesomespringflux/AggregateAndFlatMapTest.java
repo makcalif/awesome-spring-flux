@@ -156,27 +156,39 @@ public class AggregateAndFlatMapTest {
                     empMap.put("id", emp.getId());
                     empMap.put("firstName", emp.getFirstName());
 
-                    Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
+                    //Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
 
                     Flux<Map<String, Object>> equipMap = equip.map(equipment -> {
                         HashMap<String, Object> eqMap = new HashMap();
                         eqMap.put("name", equipment.getName());
+                        eqMap.put("type", equipment.getType());
                         return eqMap;
                     });
 
                     // get Addresses
                     Map<String, String> addressMap = new HashMap<>();
                     addressMap.put("address", "123 some street");
+                    addressMap.put("address", "54 Folsom Rd");
                     Flux<Map<String, String>> addressFlux = Flux.just(addressMap);
                     // getProjects
 
+                    /* working with single row
                     Flux<Map<String, Object>> zipped = Flux.zip(equipMap, addressFlux)
                             .map((all) -> {
                                 Map<String, Object> merged = new LinkedHashMap<>();
                                 merged.putAll(empMap);
-                                merged.putAll(all.getT1());
+                                merged.put("equipment", all.getT1());
+                                //merged.putAll(all.getT1());
                                 merged.putAll(all.getT2());
                                 return merged;
+                            });
+                    return zipped;  */
+
+
+                    Flux<Map<String, Object>> zipped = Flux.zip(equipMap, addressFlux)
+                            .flatMap((all) -> {
+                                return null;
+
                             });
                     return zipped;
 
@@ -198,5 +210,59 @@ public class AggregateAndFlatMapTest {
                 .map(e -> e.getT2());
 
         return equipment;
+    }
+
+    @Test
+    public void nestedFlagMap() {
+        Flux<Equipment> equipmentBasic = Flux.fromIterable(Arrays.asList(
+                new Equipment(12L, "computer", "hardware"),
+                new Equipment(12L, "laptop", "hardware"),
+                new Equipment(12L, "windows", "software")
+        ));
+
+        Map<String, String> addressMap = new HashMap<>();
+        addressMap.put("address1", "123 some street");
+        addressMap.put("address2", "54 Folsom Rd");
+        Flux<Map<String, String>> addressFlux = Flux.just(addressMap);
+
+
+        Flux<List<String>> flatAddress = addressFlux.flatMap(address -> {
+            List<String> list = new ArrayList(address.values());
+            return Flux.just(list);
+        });
+
+        Flux<String> equipFlat = equipmentBasic.flatMap(equipment -> {
+            return Flux.just( equipment.getName() );
+        });
+
+        equipmentBasic.flatMap(eq -> {
+
+            Flux<String> equipFlux = Flux.just(eq.getName());
+
+            Flux<List<String>> addListFlux = flatAddress.flatMap(address -> {
+                return Flux.just(address);
+            });
+            Flux<String> zipped = equipFlux.zipWith(addListFlux)
+                    .flatMap( (a) -> {
+                        return Flux.just(a.getT1() + a.getT2());
+                    });
+
+            return zipped;
+        }).doOnNext(l -> {
+            System.out.println("line:" + l);
+        })
+               .blockLast();
+
+
+
+//
+//
+//        Flux.merge(equipFlat, addressFlux)
+//                .flatMap( (e)  -> {
+//                    return e;
+//                })
+//                .doOnNext(System.out::println)
+//                .blockLast();
+
     }
 }
