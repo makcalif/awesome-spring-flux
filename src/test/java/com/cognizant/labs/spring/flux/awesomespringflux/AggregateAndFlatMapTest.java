@@ -53,8 +53,8 @@ public class AggregateAndFlatMapTest {
                 new Employee("234", "Andre", "Aggasi")
         ));
 
-        Flux<Long> delay = randomDelayFlux();
-        Flux<Employee> employees = Flux.zip(delay, employeeBasic)
+        Flux<Long> employeeDelay = Flux.interval(Duration.ofSeconds(3));
+        Flux<Employee> employees = Flux.zip(employeeDelay, employeeBasic)
                 .map(e -> e.getT2());
 
         Flux<Equipment> equipmentBasic = Flux.fromIterable(Arrays.asList(
@@ -63,7 +63,9 @@ public class AggregateAndFlatMapTest {
                 new Equipment(12L, "windows", "software")
         ));
 
-        Flux<Equipment> equipment = Flux.zip(delay, equipmentBasic)
+        //Flux<Long> equipmentDelay = randomDelayFlux();
+        Flux<Long> equipmentDelay = Flux.interval(Duration.ofSeconds(1));
+        Flux<Equipment> equipment = Flux.zip(equipmentDelay, equipmentBasic)
                 .map(e -> e.getT2());
 
         Function<Employee, Flux<String>> mapper = e -> Flux.just(e.toString());
@@ -77,6 +79,16 @@ public class AggregateAndFlatMapTest {
                 .blockLast();
 
     }
+
+    public Flux<Mono<Long>> randomDelayFlux2() {
+        Mono<Long> m1 = getRandomDelayMono();
+        Mono<Long> m2 = getRandomDelayMono();
+        Mono<Long> m3 = getRandomDelayMono();
+        Flux<Mono<Long>> f = Flux.just(m1, m2, m3);
+        //f.doOnNext(System.out::println).blockLast();
+        return f;
+    }
+
 
     private Flux<Long> randomDelayFlux() {
         ArrayList<Flux<Long>> fluxList = new ArrayList<>();
@@ -121,5 +133,63 @@ public class AggregateAndFlatMapTest {
         System.out.println("delay:" + random);
         Mono<Long> delay = Mono.delay(Duration.ofSeconds(random)).then(Mono.just(1L));
         return delay;
+    }
+
+    @Test
+    public void chunksOfEmployee_and_makeDependentCalls() {
+
+        Flux<Employee> employeeBasic = Flux.fromIterable(Arrays.asList(
+                new Employee("123", "John", "Doe"),
+                new Employee("234", "Michael", "Phelps"),
+                new Employee("345", "Andre", "Aggasi")
+        ));
+
+        Flux<Long> employeeDelay = Flux.interval(Duration.ofSeconds(1));
+        Flux<Employee> employees = Flux.zip(employeeDelay, employeeBasic)
+                .map(e -> e.getT2());
+
+        employees
+                // equivalent of map and merge
+                .flatMap(emp -> {
+                   // get equipment
+
+                   Flux<Equipment> equip = this.getEmployeeEquipment(emp);
+
+                     Map<String, Object> empMap = new HashMap<>();
+                     empMap.put("id", emp.getId());
+                     empMap.put("firstName", emp.getFirstName());
+
+                     Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
+
+                    Flux<Map<String, String>> equipMap =  equip.map(equipment -> {
+                        HashMap<String, String> eqMap = new HashMap();
+                        eqMap.put("name", equipment.getName());
+                        return eqMap;
+                    });
+
+                   // get Addresses
+
+                   // getProjects
+
+                    empMap.put("equipment", equipMap);
+                    return  empMapFlux;
+                }).doOnNext(System.out::println)
+                .blockLast();
+
+    }
+
+    private Flux<Equipment> getEmployeeEquipment(Employee employee) {
+        Flux<Equipment> equipmentBasic = Flux.fromIterable(Arrays.asList(
+                new Equipment(12L, "computer", "hardware"),
+                new Equipment(12L, "laptop", "hardware"),
+                new Equipment(12L, "windows", "software")
+        ));
+
+        //Flux<Long> equipmentDelay = randomDelayFlux();
+        Flux<Long> equipmentDelay = Flux.interval(Duration.ofSeconds(1));
+        Flux<Equipment> equipment = Flux.zip(equipmentDelay, equipmentBasic)
+                .map(e -> e.getT2());
+
+        return equipment;
     }
 }
