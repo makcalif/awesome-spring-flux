@@ -136,8 +136,8 @@ public class AggregateAndFlatMapTest {
     private Flux<Equipment> getEmployeeEquipment(Employee employee) {
         Flux<Equipment> equipmentBasic = Flux.fromIterable(Arrays.asList(
                 new Equipment(12L, "computer", "hardware"),
-                new Equipment(12L, "laptop", "hardware"),
-                new Equipment(12L, "windows", "software")
+                new Equipment(22L, "laptop", "hardware"),
+                new Equipment(33L, "windows", "software")
         ));
 
         //Flux<Long> equipmentDelay = randomDelayFlux();
@@ -154,7 +154,7 @@ public class AggregateAndFlatMapTest {
                 new Address(6L, "work", "2233", "main street")
         ));
 
-        Flux<Long> equipmentDelay = Flux.interval(Duration.ofSeconds(3));
+        Flux<Long> equipmentDelay = Flux.interval(Duration.ofSeconds(1));
         Flux<Address> addresses = Flux.zip(equipmentDelay, equipmentBasic)
                 .map(e -> e.getT2());
 
@@ -224,14 +224,16 @@ public class AggregateAndFlatMapTest {
                 Flux<Equipment> equip = this.getEmployeeEquipment(emp);
                 Flux<Address> address = this.getEmployeeAddress(emp);
 
-                Flux<String> equipString = equip.flatMap(e -> Flux.just(e.toString()));
-                Flux<String> addressString = address.flatMap(e -> Flux.just(e.toString()));
+                Mono<List<String>> equipList = equip.
+                        flatMap(e -> Flux.just(e.toString()))
+                        .collectList();
+                Mono<List<String>> addressList = address.
+                        flatMap(e -> Flux.just(e.toString()))
+                        .collectList();
 
-                return Flux.zip(equipString, addressString)
-                        .flatMap(all -> {
-                            return Flux.just( emp.getId() + ", " + emp.getFirstName()+ " " +
-                                    all.getT1() + all.getT2());
-                        });
+                return Flux.zip(equipList, addressList)
+                        .flatMap((all) -> Flux.just(emp.getId() + ", " + emp.getFirstName()
+                                + all.getT1() +":" + all.getT2()));
             })
             .doOnNext(System.out::println)
             .blockLast();
