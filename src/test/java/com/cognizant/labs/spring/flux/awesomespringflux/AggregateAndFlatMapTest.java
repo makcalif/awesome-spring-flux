@@ -1,5 +1,6 @@
 package com.cognizant.labs.spring.flux.awesomespringflux;
 
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.Address;
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Employee;
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Equipment;
 import org.junit.Test;
@@ -34,10 +35,10 @@ public class AggregateAndFlatMapTest {
         Flux<String> second = Flux.fromIterable(Arrays.asList("D", "E", "F"));
 
         Flux<String> zip = Flux.zip(first, second)
-        .map((f) -> f.getT1() +  f.getT2()) ;
+                .map((f) -> f.getT1() + f.getT2());
 
-         zip.doOnNext(System.out::println)
-                 .blockLast();
+        zip.doOnNext(System.out::println)
+                .blockLast();
     }
 
 
@@ -66,10 +67,10 @@ public class AggregateAndFlatMapTest {
                 .map(e -> e.getT2());
 
         Function<Employee, Flux<String>> mapper = e -> Flux.just(e.toString());
-        Flux<String> empStrFlux = employees.flatMap( mapper);
+        Flux<String> empStrFlux = employees.flatMap(mapper);
 
         Function<Equipment, Flux<String>> eqMapper = e -> Flux.just(e.toString());
-        Flux<String> equipStrFlux = equipment.flatMap( eqMapper);
+        Flux<String> equipStrFlux = equipment.flatMap(eqMapper);
 
         Flux<String> merged = Flux.merge(empStrFlux, equipStrFlux);
         merged.doOnNext(System.out::println)
@@ -89,7 +90,7 @@ public class AggregateAndFlatMapTest {
 
     private Flux<Long> randomDelayFlux() {
         ArrayList<Flux<Long>> fluxList = new ArrayList<>();
-        for(int i=0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
             fluxList.add(Flux.create((FluxSink<Long> sink) -> {
                 sink.next(getRandomDelayMono().block());
                 sink.complete();
@@ -126,75 +127,10 @@ public class AggregateAndFlatMapTest {
 
 
     private Mono<Long> getRandomDelayMono() {
-        int random = ThreadLocalRandom.current().nextInt(1,10);
+        int random = ThreadLocalRandom.current().nextInt(1, 10);
         System.out.println("delay:" + random);
         Mono<Long> delay = Mono.delay(Duration.ofSeconds(random)).then(Mono.just(1L));
         return delay;
-    }
-
-    @Test
-    public void chunksOfEmployee_and_makeDependentCalls() {
-
-        Flux<Employee> employeeBasic = Flux.fromIterable(Arrays.asList(
-                new Employee("123", "John", "Doe"),
-                new Employee("234", "Michael", "Phelps"),
-                new Employee("345", "Andre", "Aggasi")
-        ));
-
-        Flux<Long> employeeDelay = Flux.interval(Duration.ofSeconds(1));
-        Flux<Employee> employees = Flux.zip(employeeDelay, employeeBasic)
-                .map(e -> e.getT2());
-
-        employees
-                // equivalent of map and merge
-                .flatMap(emp -> {
-                    // get equipment
-
-                    Flux<Equipment> equip = this.getEmployeeEquipment(emp);
-
-                    Map<String, Object> empMap = new HashMap<>();
-                    empMap.put("id", emp.getId());
-                    empMap.put("firstName", emp.getFirstName());
-
-                    //Flux<Map<String, Object>> empMapFlux = Flux.just(empMap);
-
-                    Flux<Map<String, Object>> equipMap = equip.map(equipment -> {
-                        HashMap<String, Object> eqMap = new HashMap();
-                        eqMap.put("name", equipment.getName());
-                        eqMap.put("type", equipment.getType());
-                        return eqMap;
-                    });
-
-                    // get Addresses
-                    Map<String, String> addressMap = new HashMap<>();
-                    addressMap.put("address", "123 some street");
-                    addressMap.put("address", "54 Folsom Rd");
-                    Flux<Map<String, String>> addressFlux = Flux.just(addressMap);
-                    // getProjects
-
-                    /* working with single row
-                    Flux<Map<String, Object>> zipped = Flux.zip(equipMap, addressFlux)
-                            .map((all) -> {
-                                Map<String, Object> merged = new LinkedHashMap<>();
-                                merged.putAll(empMap);
-                                merged.put("equipment", all.getT1());
-                                //merged.putAll(all.getT1());
-                                merged.putAll(all.getT2());
-                                return merged;
-                            });
-                    return zipped;  */
-
-
-                    Flux<Map<String, Object>> zipped = Flux.zip(equipMap, addressFlux)
-                            .flatMap((all) -> {
-                                return null;
-
-                            });
-                    return zipped;
-
-                }).doOnNext(System.out::println)
-                .blockLast();
-
     }
 
     private Flux<Equipment> getEmployeeEquipment(Employee employee) {
@@ -210,6 +146,19 @@ public class AggregateAndFlatMapTest {
                 .map(e -> e.getT2());
 
         return equipment;
+    }
+
+    private Flux<Address> getEmployeeAddress(Employee employee) {
+        Flux<Address> equipmentBasic = Flux.fromIterable(Arrays.asList(
+                new Address(4L, "home", "2344", "folsom street"),
+                new Address(6L, "work", "2233", "main street")
+        ));
+
+        Flux<Long> equipmentDelay = Flux.interval(Duration.ofSeconds(3));
+        Flux<Address> addresses = Flux.zip(equipmentDelay, equipmentBasic)
+                .map(e -> e.getT2());
+
+        return addresses;
     }
 
     @Test
@@ -232,7 +181,7 @@ public class AggregateAndFlatMapTest {
         });
 
         Flux<String> equipFlat = equipmentBasic.flatMap(equipment -> {
-            return Flux.just( equipment.getName() );
+            return Flux.just(equipment.getName());
         });
 
         equipmentBasic.flatMap(eq -> {
@@ -243,7 +192,7 @@ public class AggregateAndFlatMapTest {
                 return Flux.just(address);
             });
             Flux<String> zipped = equipFlux.zipWith(addListFlux)
-                    .flatMap( (a) -> {
+                    .flatMap((a) -> {
                         return Flux.just(a.getT1() + a.getT2());
                     });
 
@@ -251,18 +200,40 @@ public class AggregateAndFlatMapTest {
         }).doOnNext(l -> {
             System.out.println("line:" + l);
         })
-               .blockLast();
+                .blockLast();
+    }
 
+    @Test
+    public void chunksOfEmployee_and_zip_equipment_and_addresses() {
 
+        Flux<Employee> employeeBasic = Flux.fromIterable(Arrays.asList(
+                new Employee("123", "John", "Doe"),
+                new Employee("234", "Michael", "Phelps"),
+                new Employee("345", "Andre", "Aggasi")
+        ));
 
-//
-//
-//        Flux.merge(equipFlat, addressFlux)
-//                .flatMap( (e)  -> {
-//                    return e;
-//                })
-//                .doOnNext(System.out::println)
-//                .blockLast();
+        Flux<Long> employeeDelay = Flux.interval(Duration.ofSeconds(1));
+        Flux<Employee> employees = Flux.zip(employeeDelay, employeeBasic)
+                .map(e -> e.getT2());
 
+        employees
+            // equivalent of map and merge
+            .flatMap(emp -> {
+                // get equipment
+
+                Flux<Equipment> equip = this.getEmployeeEquipment(emp);
+                Flux<Address> address = this.getEmployeeAddress(emp);
+
+                Flux<String> equipString = equip.flatMap(e -> Flux.just(e.toString()));
+                Flux<String> addressString = address.flatMap(e -> Flux.just(e.toString()));
+
+                return Flux.zip(equipString, addressString)
+                        .flatMap(all -> {
+                            return Flux.just( emp.getId() + ", " + emp.getFirstName()+ " " +
+                                    all.getT1() + all.getT2());
+                        });
+            })
+            .doOnNext(System.out::println)
+            .blockLast();
     }
 }
