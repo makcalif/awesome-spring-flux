@@ -41,6 +41,7 @@ public class TweetController {
         return fluxTweets;
     }
 
+    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(value = "/tweetstream", produces =  MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Tweet> streamAllTweets () {
 
