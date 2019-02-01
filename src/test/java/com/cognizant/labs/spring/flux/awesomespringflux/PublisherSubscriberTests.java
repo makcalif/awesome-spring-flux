@@ -35,7 +35,7 @@ public class PublisherSubscriberTests {
             @Override
             public void onSubscribe(Subscription s) {
                 this.s = s;
-                System.out.println("on subscribe");
+                System.out.println("on subscribe :" + Thread.currentThread().getName());
                 s.request(2);
             }
 
@@ -43,7 +43,7 @@ public class PublisherSubscriberTests {
             public void onNext(Object o) {
                 onNextAmount ++;
                 if(onNextAmount % 2 == 0) {
-                    System.out.println("onNextAmount: " + onNextAmount);
+                    System.out.println("onNextAmount: " + onNextAmount + ":" + Thread.currentThread().getName());
                     s.request(2);
                 }
             }
@@ -60,8 +60,10 @@ public class PublisherSubscriberTests {
             }
         };
 
+        System.out.println("before ==========================");
         intFlux.log()
                 .subscribe(subscriber);
+        System.out.println("after ==========================");
 
     }
 
@@ -100,10 +102,22 @@ public class PublisherSubscriberTests {
         .publish();
 
         connectableFlux.log()
-                .subscribe( t ->  {System.out.println("Subscirber 1:" + t);});
+                .subscribe( t ->  {System.out.println("Subscirber 1:" + t +
+                        " thread : " + Thread.currentThread().getName());});
 
+        System.out.println("before ==========================:" + Thread.currentThread().getName());
         connectableFlux.connect();
+        //connectableFlux.blockFirst();
 
+        System.out.println("after xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
     }
+
+    @Test
+    public void checkStreamThread() {
+        IntStream.range(0,10)
+                .forEach(e -> System.out.println(e + ":" + Thread.currentThread().getName()));
+    }
+
+
     // add tests for delay plus step verifier in ppt
 }
