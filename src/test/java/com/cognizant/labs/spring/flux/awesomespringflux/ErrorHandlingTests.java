@@ -24,17 +24,11 @@ public class ErrorHandlingTests {
 
     @Test
     public void testExceptionHandlingInline() {
-        //Mono<Tweet> exceptionMono = getBogusMono(Mono.error(new IllegalStateException()));
-//        Mono<Tweet> exceptionMono = Mono.error(new IllegalStateException());
-//        Mono<Tweet> exceptionMono = Mono.error(new IllegalStateException());
-        Mono<Tweet> wrapped = Mono.error(new RuntimeException("asdf"))
-                .onErrorResume(throwable ->   Mono.just(fallBackTweet))
-                .flatMap(e -> {
-                    return e;
-                });
 
-        StepVerifier.create(wrapped)
+        Mono<Tweet> erroredMono = Mono.error(new RuntimeException("Business Exception"));
+        Mono<Tweet> erroredWithFallback =  erroredMono.onErrorResume(e -> Mono.just(fallBackTweet));
 
+        StepVerifier.create(erroredWithFallback)
                 .expectNext(fallBackTweet)
                 .expectComplete()
                 .verify();

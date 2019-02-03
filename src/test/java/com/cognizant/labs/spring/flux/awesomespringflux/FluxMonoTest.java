@@ -1,6 +1,9 @@
 package com.cognizant.labs.spring.flux.awesomespringflux;
 
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.Address;
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.Person;
 import org.junit.Test;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -11,11 +14,127 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 //http://sinhamohit.com/writing/reactor-core-tutorial
 
 public class FluxMonoTest {
+
+    @Test
+    public void testFirstMono() {
+        Mono<String> firstMono = Mono.just("A");
+        firstMono.subscribe(System.out::println);
+    }
+
+    @Test
+    public void monoWithDelay() throws InterruptedException {
+        Mono<String> firstMono = Mono.just("A");
+        Mono<Long> fiveSecDelay = Mono.delay(Duration.ofSeconds(5));
+
+        BiFunction<String, Long, Long> combinator = (letter, delay ) -> delay;
+        firstMono.zipWith(fiveSecDelay, combinator)
+                .subscribe(System.out::println);
+
+        Thread.sleep(6000);
+    }
+
+    @Test
+    public void monoWithDelay_stepVerify()  {
+        Mono<String> firstMono = Mono.just("A");
+        Mono<Long> fiveSecDelay = Mono.delay(Duration.ofSeconds(5));
+
+        Mono<String> monoWithDelay = firstMono.zipWith(fiveSecDelay, (letter, delay) -> letter);
+
+        StepVerifier.create(monoWithDelay)
+                .expectNext("B")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testFirstFlux() {
+        Flux<String> flux = Flux.fromIterable(Arrays.asList("A", "B", "C"));
+
+        flux.subscribe(System.out::println);
+    }
+
+    @Test
+    public void testFlatMap() {
+        Person person1 = new Person("Eric", new Address("101",  "grand st"));
+        Person person2 = new Person("Brenda", new Address("4000",  "canyon st"));
+
+        Flux<Person> persons = Flux.fromIterable(Arrays.asList(person1, person2));
+        Flux<Address> addresses = persons.flatMap(person -> Mono.just(person.getAddress()));
+        addresses.subscribe(System.out::println);
+    }
+
+    @Test
+    public void testProduceErrors() {
+        Mono<Person> person1 = Mono.just(new Person("Eric", new Address("101",  "grand st")));
+        Mono<Person> errorPerson = Mono.error(new RuntimeException("Person system down for maintenance. Try again later"));
+
+        Flux<Person> persons = Flux.concat(person1, errorPerson);
+        Flux<Address> addresses = persons.flatMap(person -> Mono.just(person.getAddress()));
+        addresses.subscribe(System.out::println);
+    }
+
+    @Test
+    public void castObjectToSpecifiMono() {
+        Mono<Person> errorPerson = Mono.<Person>error(new RuntimeException("Person system down for maintenance. Try again later"));
+
+    }
+
+    @Test
+    public void testHandleErrors() {
+        Mono<Person> person1 = Mono.just(new Person("Eric", new Address("101",  "grand st")));
+        Mono<Person> errorPerson = Mono.<Person>error(new RuntimeException("Person system down for maintenance. Try again later"));
+
+        Flux<Person> persons = Flux.concat(person1, errorPerson);
+        Flux<Address> addresses = persons
+                .onErrorResume(RuntimeException.class   , e -> {
+                    System.out.println(e);
+                    return Mono.empty();
+                })
+                .flatMap(person -> Mono.just(person.getAddress()));
+        addresses.subscribe(System.out::println);
+    }
+
+    @Test
+    public void testHandleErrorsWithOnErrorContinue() {
+        // work on this later
+        ConnectableFlux<Integer> longStream = Flux.<Integer>create(longFluxSink -> {
+             Flux.range(1, 100).subscribe(val -> {
+                 if (val < 10 || val >90) {
+                     longFluxSink.next(val);
+                 //} else throw new RuntimeException("Some error");
+                 } else longFluxSink.error(new RuntimeException("Some error"));  //next( Mono.error(new RuntimeException("some error"));
+             });
+             ///longFluxSink.next(100L);
+        }).publish();
+
+        longStream
+                .onErrorContinue((e) -> true, (e, obj) -> {
+                    System.out.println("obj:" + obj);
+                })
+                .subscribe(System.out::println);
+        longStream.connect();
+
+    }
+
+    @Test
+    public void testHandleErrorsHotStreamWithOnErrorContinue() {
+        // work on this later
+        ConnectableFlux<Long> longStream = Flux.<Long>create(longFluxSink -> {
+            while(true) {
+                longFluxSink.next(System.currentTimeMillis());
+            }
+        }).publish();
+
+        longStream.subscribe(System.out::println);
+
+        longStream.connect();
+
+    }
 
     @Test
     public void empty() {

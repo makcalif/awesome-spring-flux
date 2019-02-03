@@ -10,4 +10,17 @@ public class Address {
     String type;
     String number;
     String street;
+
+    public Address(String number, String street) {
+        this.number = number;
+        this.street = street;
+    }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+                "number='" + number + '\'' +
+                ", street='" + street + '\'' +
+                '}';
+    }
 }
