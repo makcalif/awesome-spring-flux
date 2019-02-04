@@ -1,21 +1,24 @@
 package com.cognizant.labs.spring.flux.awesomespringflux;
 
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Address;
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.Container;
+import com.cognizant.labs.spring.flux.awesomespringflux.domain.IntegerSupplier;
 import com.cognizant.labs.spring.flux.awesomespringflux.domain.Person;
 import org.junit.Test;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
-import reactor.util.function.Tuple2;
 
-import java.io.IOException;
+import javax.naming.ServiceUnavailableException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 //http://sinhamohit.com/writing/reactor-core-tutorial
 
@@ -100,6 +103,30 @@ public class FluxMonoTest {
     }
 
     @Test
+    public void testHandleErrorsWithOnErrorResume()  {
+        // work on this later
+        ConnectableFlux<Integer> longStream = Flux.<Integer>create(longFluxSink -> {
+            Flux.range(1, 100).subscribe(val -> {
+                if (val < 10 || val >90) {
+                    longFluxSink.next(val);
+                    //} else throw new RuntimeException("Some error");
+                } else {
+                    longFluxSink.error(new ServiceUnavailableException("Downstream error"));  //next( Mono.error(new RuntimeException("some error"));
+                }
+            });
+        }).publish();
+
+        longStream
+                .onErrorResume(ServiceUnavailableException.class   , e -> {
+                    System.out.println(e);
+                    return Mono.empty();
+                })
+                .subscribe(System.out::println);
+        longStream.connect();
+
+    }
+
+    @Test
     public void testHandleErrorsWithOnErrorContinue() {
         // work on this later
         ConnectableFlux<Integer> longStream = Flux.<Integer>create(longFluxSink -> {
@@ -109,7 +136,6 @@ public class FluxMonoTest {
                  //} else throw new RuntimeException("Some error");
                  } else longFluxSink.error(new RuntimeException("Some error"));  //next( Mono.error(new RuntimeException("some error"));
              });
-             ///longFluxSink.next(100L);
         }).publish();
 
         longStream
@@ -133,8 +159,28 @@ public class FluxMonoTest {
         longStream.subscribe(System.out::println);
 
         longStream.connect();
-
     }
+
+    @Test
+    public void testCollectFlatMapThenSingle() {
+        Flux<Integer> numbers = Flux.range(1, 20);
+
+        Supplier<Container> containerSupplier = () -> {return new Container();};
+
+        BiConsumer<Container, Integer  > biConsumer = (c, i) ->  c.accumulate(i);
+        numbers.collect(containerSupplier, biConsumer)
+                .flatMap( combined -> {
+                    return Mono.justOrEmpty(combined.getList().stream().max(Integer::compareTo))
+                            .map(max -> {
+                                combined.setMax(max);
+                                return combined;
+                                }
+                            );
+                })
+                .single()
+                .subscribe(System.out::println);
+    }
+
 
     @Test
     public void empty() {
